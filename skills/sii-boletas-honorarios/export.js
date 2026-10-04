@@ -93,7 +93,7 @@
     const csv = [cols.map(([h]) => h).join(";"),
       ...index.map((r) => cols.map(([, f]) => cell(typeof f === "function" ? f(r) : r[f])).join(";"))].join("\r\n");
     files.unshift(
-      { name: "boletas.csv", data: enc.encode("﻿" + csv) },
+      { name: "boletas.csv", data: enc.encode("\uFEFF" + csv) },
       { name: "sii_bhe_index.json", data: enc.encode(JSON.stringify(index, null, 1)) }
     );
 
