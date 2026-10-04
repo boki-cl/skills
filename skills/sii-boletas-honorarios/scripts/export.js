@@ -25,7 +25,8 @@
     const rut = form.rut_arrastre.value;
     const dv = form.dv_arrastre.value;
     // The year menu only lists recent years, but the report serves older ones
-    // by URL. SII keeps roughly the last seven years.
+    // by URL. SII keeps roughly the last seven years online; starting at 2010
+    // covers that with margin, and an empty month costs one small request.
     const listed = [...form.cbanoinformeanual.options].map((o) => +o.value).filter(Boolean);
     const firstYear = 2010;
     const years = Array.from({ length: Math.max(...listed) - firstYear + 1 }, (_, i) => firstYear + i);
@@ -33,16 +34,28 @@
     const get = async (u) => decoder.decode(await (await fetch(u, { credentials: "include" })).arrayBuffer());
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-    // Rows are JS assignments arr_informe_mensual['<field>_<i>'] = …; amounts
-    // are unquoted, so evaluate SII's own statements instead of regexing values.
+    // Rows come as JS assignments arr_informe_mensual['<field>_<i>'] = <value>;
+    // The value is read as data, never executed: string literals and numbers,
+    // optionally joined with +, or a single such value wrapped in a formatting
+    // call like f('1234'), whose argument is taken as is. Anything else is skipped.
+    const literal = (expr) => {
+      const call = expr.trim().match(/^[A-Za-z_$][\w$.]*\(\s*(.*?)\s*\)$/);
+      if (call) return literal(call[1]);
+      const parts = expr.trim().split(/\s*\+\s*(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/);
+      let out = "";
+      for (const p of parts) {
+        const q = p.match(/^'((?:[^'\\]|\\.)*)'$|^"((?:[^"\\]|\\.)*)"$/);
+        if (q) out += (q[1] ?? q[2]).replace(/\\(.)/g, "$1");
+        else if (/^-?[\d.,]+$/.test(p)) out += p;
+        else return null;
+      }
+      return out;
+    };
     const parseMonth = (html) => {
-      const a = {};
-      for (const s of html.match(/arr_informe_mensual\[[^\]]+\]\s*=[^;\n]*;/g) || [])
-        new Function("arr_informe_mensual", s)(a);
       const rows = {};
-      for (const [k, v] of Object.entries(a)) {
-        const m = k.match(/^(\w+?)_(\d+)$/);
-        if (m) (rows[m[2]] ??= {})[m[1]] = String(v).trim();
+      for (const m of html.matchAll(/arr_informe_mensual\[\s*['"](\w+?)_(\d+)['"]\s*\]\s*=\s*([^;\n]*);/g)) {
+        const v = literal(m[3]);
+        if (v !== null) (rows[m[2]] ??= {})[m[1]] = v.trim();
       }
       return { rows: Object.values(rows), pages: +((html.match(/tot_pag\s*=\s*'?(\d+)/) || [])[1] || 1) };
     };
@@ -78,7 +91,7 @@
       } catch (e) {
         state.bad.push(`${r.nroboleta}: ${e.message}`);
       }
-      await sleep(250);
+      await sleep(250); // stay well under anything SII might treat as abuse
     }
 
     const cols = [
