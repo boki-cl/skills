@@ -1,19 +1,19 @@
 ---
 name: sii-boletas-honorarios
-description: Downloads every boleta de honorarios electrónica (BHE) a Chilean taxpayer has emitted, straight from SII (sii.cl), as one ZIP with all the PDFs, a boletas.csv for Excel and SII's per-boleta data (número, fecha, receptor, montos, retención, anulada). Runs in the user's own signed-in browser session and never handles the Clave Tributaria. Use when someone in Chile wants to download, back up or export their boletas de honorarios emitidas, for example for Operación Renta, an accountant, or switching tools ("descargar mis boletas de honorarios", "respaldar boletas emitidas del SII").
+description: Downloads every boleta de honorarios electrónica (BHE) a Chilean taxpayer has emitted and that is still in force (vigente), straight from SII (sii.cl), as one ZIP with the PDFs, a boletas.csv for Excel and SII's per-boleta data (número, fecha, receptor, montos, retención). Voided boletas are left out. Runs in the user's own signed-in browser session and never handles the Clave Tributaria. Use when someone in Chile wants to download, back up or export their boletas de honorarios emitidas, for example for Operación Renta, an accountant, or switching tools ("descargar mis boletas de honorarios", "respaldar boletas emitidas del SII").
 license: MIT
 compatibility: Needs a browser-control tool (or the user pasting into the devtools console) and the user signed in to sii.cl.
 metadata:
   author: boki-cl
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Download all emitted boletas de honorarios from SII
 
 The result is `boletas_honorarios_sii.zip` in the user's Downloads folder. It contains:
-- **`pdf/boleta_<número>_<código>.pdf`:** every boleta, voided ones included.
-- **`boletas.csv`:** one row per boleta, UTF-8, `;`-separated, opens in Excel.
-- **`sii_bhe_index.json`:** SII's raw report row for each boleta.
+- **`pdf/boleta_<número>_<código>.pdf`:** every boleta in force (vigente). Voided (anuladas) ones are left out.
+- **`boletas.csv`:** one row per vigente boleta, UTF-8, `;`-separated, opens in Excel.
+- **`sii_bhe_index.json`:** SII's raw report row for each vigente boleta.
 
 ## Steps with a browser tool
 
@@ -23,7 +23,7 @@ The result is `boletas_honorarios_sii.zip` in the user's Downloads folder. It co
    - **Claude in Chrome** (`javascript_tool`) and most CDP tools: pass the contents as they are.
    - **Playwright MCP** (`browser_evaluate`): pass `async () => { <contents> }`.
 4. **Wait for it.** Every 30 to 60 seconds, evaluate `JSON.stringify(window.__bheExport)` until `done` is true. It takes about 1 second per boleta. `phase` moves through `index`, `pdfs`, `zip` and `saved`, or ends at `error`. If a long evaluation times out, the script keeps running in the page; keep polling.
-5. **Report the result.** Give the user `rows`, `pdfs`, `bad` and `missingOlder`.
+5. **Report the result.** Give the user `rows` (vigentes), `pdfs`, `anuladas` (left out), `bad` and `missingOlder`.
 
 ## Steps without an agent
 
@@ -44,7 +44,7 @@ Give the user these steps:
 
 - **About seven years online.** SII keeps roughly seven years of boletas available, and nothing else on SII lists older ones. `missingOlder` names the ones that couldn't be reached.
 - **Emitted boletas only.** It doesn't download boletas you received.
-- **Voided status is only in the CSV.** A voided boleta's PDF looks like a valid one, so use the CSV's `anulada` column.
+- **Voided boletas are excluded.** A voided boleta's PDF looks exactly like a valid one, so the script drops them using SII's report (`estado` = `S`) and never downloads their PDFs.
 - **Truncated names.** SII cuts the receptor's name at 30 characters in the CSV. The PDF has the full name.
 - **The taxpayer's own session only.** An accountant's or mandatario's session can't see these reports.
 

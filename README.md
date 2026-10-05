@@ -4,10 +4,10 @@ Skills para agentes de IA (Claude Code, Codex, Cursor y otros) que te ahorran tr
 
 ## sii-boletas-honorarios
 
-Descarga **todas tus boletas de honorarios emitidas** desde el SII en un solo ZIP:
+Descarga **todas tus boletas de honorarios emitidas vigentes** desde el SII en un solo ZIP:
 
-- el PDF de cada boleta, también las anuladas
-- `boletas.csv` con número, fecha, receptor, montos, retención y si está anulada (se abre en Excel)
+- el PDF de cada boleta vigente (las anuladas quedan fuera)
+- `boletas.csv` con número, fecha, receptor, montos y retención (se abre en Excel)
 - los datos originales del SII en JSON
 
 Todo corre en tu navegador, con tu sesión del SII. Tu Clave Tributaria nunca pasa por el agente, y tus datos no salen de tu computador.
@@ -40,7 +40,7 @@ Solo hace consultas GET a `loa.sii.cl`. No envía datos a ningún otro sitio, no
 ### Límites
 
 - El SII muestra en línea unos siete años de boletas. Las más antiguas no aparecen, y el script te dice cuáles faltan.
-- Solo descarga boletas emitidas, no las recibidas.
+- Solo descarga boletas emitidas y vigentes. Las anuladas y las recibidas no se incluyen.
 
 ---
 

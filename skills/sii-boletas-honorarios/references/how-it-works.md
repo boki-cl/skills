@@ -6,7 +6,7 @@ These are the only requests the script makes. All are GETs on `loa.sii.cl`, sent
 |---|---|---|
 | Years | The menu page you're already on, `form[0].cbanoinformeanual` | The menu only lists recent years, so the script scans every year from 2010. `rut_arrastre` and `dv_arrastre` are hidden fields on the same form. |
 | Rows | `TMBCOC_InformeMensualBhe.cgi?cbanoinformemensual=YYYY&cbmesinformemensual=MM&rut_arrastre=…&dv_arrastre=…&pagina_solicitada=P` | Once per month. The rows are JavaScript assignments, `arr_informe_mensual['<field>_<i>'] = <value>;`. The script reads only literal values from them and never runs them. `tot_pag` gives the page count. The page is in ISO-8859-1. |
-| PDF | `TMBCOT_ConsultaBoletaPdf.cgi?txt_codigobarras=<código>&veroriginal=si&origen=PROPIOS&enviar=si` | Once per boleta, 250 ms apart. Voided boletas return a normal-looking PDF. |
+| PDF | `TMBCOT_ConsultaBoletaPdf.cgi?txt_codigobarras=<código>&veroriginal=si&origen=PROPIOS&enviar=si` | Once per vigente boleta, 250 ms apart. A voided boleta returns a normal-looking PDF, so the script skips every row with `estado` = `S` and never requests its PDF. |
 
 Each row has these fields:
 - `nroboleta`

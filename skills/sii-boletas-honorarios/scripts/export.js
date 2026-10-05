@@ -76,18 +76,23 @@
     }
     index.sort((a, b) => +a.nroboleta - +b.nroboleta);
     if (!index.length) throw new Error("El SII no devolvió boletas emitidas para este RUT.");
+    // Only boletas in force. A voided boleta (estado "S") has a PDF that looks
+    // exactly like a valid one, so it stays out of the ZIP entirely.
+    const vigentes = index.filter((r) => r.estado !== "S");
+    state.anuladas = index.length - vigentes.length;
+    state.rows = vigentes.length;
 
     state.phase = "pdfs";
     const enc = new TextEncoder();
     const files = [];
-    for (const r of index) {
+    for (const r of vigentes) {
       try {
         const res = await fetch(`/cgi_IMT/TMBCOT_ConsultaBoletaPdf.cgi?txt_codigobarras=${r.codigobarras}&veroriginal=si&origen=PROPIOS&enviar=si`, { credentials: "include" });
         const buf = new Uint8Array(await res.arrayBuffer());
         if (String.fromCharCode(...buf.slice(0, 5)) !== "%PDF-") throw new Error("no es un PDF");
         files.push({ name: `pdf/boleta_${String(r.nroboleta).padStart(4, "0")}_${r.codigobarras}.pdf`, data: buf });
         state.pdfs++;
-        if (state.pdfs % 25 === 0) say(`${state.pdfs}/${index.length} PDFs`);
+        if (state.pdfs % 25 === 0) say(`${state.pdfs}/${vigentes.length} PDFs`);
       } catch (e) {
         state.bad.push(`${r.nroboleta}: ${e.message}`);
       }
@@ -99,15 +104,14 @@
       ["rut_receptor", (r) => `${r.rutreceptor}-${r.dvreceptor}`], ["receptor", "nombrereceptor"],
       ["honorarios_brutos", "totalhonorarios"], ["retencion_emisor", "retencion_emisor"],
       ["retencion_receptor", "retencion_receptor"], ["liquido", "honorariosliquidos"],
-      ["anulada", (r) => (r.estado === "S" ? "si" : "no")], ["fecha_anulacion", "fechaanulacion"],
       ["codigo", "codigobarras"]
     ];
     const cell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const csv = [cols.map(([h]) => h).join(";"),
-      ...index.map((r) => cols.map(([, f]) => cell(typeof f === "function" ? f(r) : r[f])).join(";"))].join("\r\n");
+      ...vigentes.map((r) => cols.map(([, f]) => cell(typeof f === "function" ? f(r) : r[f])).join(";"))].join("\r\n");
     files.unshift(
       { name: "boletas.csv", data: enc.encode("\uFEFF" + csv) },
-      { name: "sii_bhe_index.json", data: enc.encode(JSON.stringify(index, null, 1)) }
+      { name: "sii_bhe_index.json", data: enc.encode(JSON.stringify(vigentes, null, 1)) }
     );
 
     // One stored (uncompressed) zip, so the browser sees a single download.
@@ -176,7 +180,8 @@
       oldest: { numero: first, fecha: index[0].fecha_boleta },
       missingOlder: first > 1 ? `boletas 1 a ${first - 1} (anteriores a lo que el SII muestra en línea)` : null
     });
-    say(`Listo: ${state.pdfs} PDFs de ${index.length} boletas en boletas_honorarios_sii.zip` +
+    say(`Listo: ${state.pdfs} PDFs de ${vigentes.length} boletas vigentes en boletas_honorarios_sii.zip` +
+        (state.anuladas ? ` (${state.anuladas} anuladas quedaron fuera)` : "") +
         (state.bad.length ? `, ${state.bad.length} con error` : "") +
         (first > 1 ? `. El SII ya no muestra las boletas 1 a ${first - 1}.` : "."));
   } catch (e) {
