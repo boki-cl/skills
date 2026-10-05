@@ -36,11 +36,12 @@
 
     // Rows come as JS assignments arr_informe_mensual['<field>_<i>'] = <value>;
     // The value is read as data, never executed: string literals and numbers,
-    // optionally joined with +, or a single such value wrapped in a formatting
-    // call like f('1234'), whose argument is taken as is. Anything else is skipped.
+    // optionally joined with +. SII wraps amounts in a display call,
+    // formatMiles("3143351",'.'); only its first argument is kept, so amounts
+    // come out as plain digits. Anything else is skipped.
     const literal = (expr) => {
       const call = expr.trim().match(/^[A-Za-z_$][\w$.]*\(\s*(.*?)\s*\)$/);
-      if (call) return literal(call[1]);
+      if (call) return literal(call[1].split(/,(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/)[0]);
       const parts = expr.trim().split(/\s*\+\s*(?=(?:[^'"]|'[^']*'|"[^"]*")*$)/);
       let out = "";
       for (const p of parts) {
