@@ -2,7 +2,7 @@
 
 Skills para agentes de IA (Claude Code, Codex, Cursor y otros) que te ahorran trámites con el SII.
 
-## sii-boletas-honorarios
+## boletas
 
 Descarga **todas tus boletas de honorarios emitidas vigentes** desde el SII en un solo ZIP:
 
@@ -15,7 +15,7 @@ Todo corre en tu navegador, con tu sesión del SII. Tu Clave Tributaria nunca pa
 ### Instalar
 
 ```bash
-npx skills add boki-cl/skills --skill sii-boletas-honorarios
+npx skills add boki-cl/skills --skill boletas
 ```
 
 Después pídele a tu agente: *"descarga mis boletas de honorarios del SII"*. Tu agente necesita control del navegador (Claude in Chrome, Playwright MCP u otro). Él abre la página y te pide que inicies sesión. Tú inicias sesión.
@@ -24,7 +24,7 @@ Después pídele a tu agente: *"descarga mis boletas de honorarios del SII"*. Tu
 
 1. Inicia sesión en sii.cl y abre https://loa.sii.cl/cgi_IMT/TMBCOC_MenuConsultasContrib.cgi
 2. Abre la consola del navegador: Cmd+Option+J en Mac, Ctrl+Shift+J en Windows o Linux.
-3. Lee [`export.js`](skills/sii-boletas-honorarios/scripts/export.js), pega su contenido en la consola y presiona Enter.
+3. Lee [`export.js`](skills/boletas/scripts/export.js), pega su contenido en la consola y presiona Enter.
 4. Espera el mensaje "Listo". El ZIP queda en tu carpeta de Descargas.
 
 ### Qué hace el script
@@ -35,7 +35,7 @@ Léelo antes de pegarlo en la consola. Pegar código que no entiendes en la cons
 - descarga el PDF de cada boleta por su código (`TMBCOT_ConsultaBoletaPdf.cgi`)
 - arma el ZIP en tu navegador y lo guarda en Descargas
 
-Solo hace consultas GET a `loa.sii.cl`. No envía datos a ningún otro sitio, no ejecuta el contenido de las páginas del SII y no llena formularios. Los detalles están en [`references/how-it-works.md`](skills/sii-boletas-honorarios/references/how-it-works.md).
+Solo hace consultas GET a `loa.sii.cl`. No envía datos a ningún otro sitio, no ejecuta el contenido de las páginas del SII y no llena formularios. Los detalles están en [`references/how-it-works.md`](skills/boletas/references/how-it-works.md).
 
 ### Límites
 

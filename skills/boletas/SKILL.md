@@ -1,5 +1,5 @@
 ---
-name: sii-boletas-honorarios
+name: boletas
 description: Downloads every boleta de honorarios electrónica (BHE) a Chilean taxpayer has emitted and that is still in force (vigente), straight from SII (sii.cl), as one ZIP with the PDFs, a boletas.csv for Excel and SII's per-boleta data (número, fecha, receptor, montos, retención). Voided boletas are left out. Runs in the user's own signed-in browser session and never handles the Clave Tributaria. Use when someone in Chile wants to download, back up or export their boletas de honorarios emitidas, for example for Operación Renta, an accountant, or switching tools ("descargar mis boletas de honorarios", "respaldar boletas emitidas del SII").
 license: MIT
 compatibility: Needs a browser-control tool (or the user pasting into the devtools console) and the user signed in to sii.cl.
